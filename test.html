@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+<body>
+
+<div id="container">
+
+<div id="header" style="background-color:#FFFFFF;">
+<h1 style="margin-bottom:0;">Image Companion</h1></div>
+
+<div id="menu" float:up;">
+<form id="geosearch">  
+<p><label for="query">Enter URL or Text:</label>  
+<input id="query" type="text" size="100"/></p>  
+<p><input type="submit" value="Search"/></p>  
+</form> 
+</div>
+
+<div id="content">
+	<p id="resp"> <hr/>  </p>
+
+</div>
+
+</div>
+ <script src="http://yui.yahooapis.com/3.5.0/build/yui/yui-min.js"></script>
+
+<script>  
+	function makeQuery(e){  
+		var parent=document.getElementById("resp");
+		parent.innerHTML="<hr\/\>";
+  		e.preventDefault();
+		var queries=new Array();
+		var cnt=0;
+		YUI().use('yql', 'node-base', function (Y) {
+		var query = 'select * from contentanalysis.analyze where url=\"' + document.getElementById('query').value +'\";';
+		x=document.getElementById("resp");
+		Y.YQL(query, function (response){
+			if(response.query.results){
+			var y=response.query.results.entities.entity;
+			if(y.length){
+				for(i=0;i<y.length;i++){
+					if(y[i].score>0.1){
+						var ques="select * from flickr.photos.search where has_geo=\"true\" and text=\"" + y[i].text.content + "\" and api_key=\"84c4d1c3f4090087a2ae6fe066c7ed1a\"";
+						Y.YQL(ques,function(res){
+							if(res.query.results){
+								var z=res.query.results.photo;
+								for(i=0;i<z.length;i++){
+									var t=buildPhotoURL(z[i]);
+									var parent=document.getElementById("resp");
+									parent.innerHTML+="<img src=\""+t+"\" width=\"300px\" height =\"400px\"></img>";
+									parent.innerHTML+="<SPACER TYPE=VERTICAL SIZE=20px>";
+									if((i+1)%5==0) parent.innerHTML+="<br\/\>";
+								}
+							}
+						});
+					}
+				}
+			}
+			else{
+				console.log(y.text.content);
+				queries[cnt]=y.text.content;
+				cnt++;
+			}
+			}
+		});
+		}); 
+		YUI().use('yql', 'node-base', function (Y) {
+		var query2 = 'select * from contentanalysis.analyze where text=\"' + document.getElementById('query').value +'\";';
+		x=document.getElementById("resp");
+		Y.YQL(query2, function (response){
+			if(response.query.results){
+			var y=response.query.results.entities.entity;
+			if(y.length){
+				for(i=0;i<y.length;i++){
+					if(y[i].score>0.9){
+						var ques="select * from flickr.photos.search where has_geo=\"true\" and text=\"" + y[i].text.content + "\" and api_key=\"84c4d1c3f4090087a2ae6fe066c7ed1a\"";
+						Y.YQL(ques,function(res){
+							if(res.query.results){
+								var z=res.query.results.photo;
+								for(i=0;i<z.length;i++){
+									var t=buildPhotoURL(z[i]);
+									var parent=document.getElementById("resp");
+									parent.innerHTML+="<img src=\""+t+"\" width=\"300px\" height =\"400px\"></img>";
+									parent.innerHTML+="<SPACER TYPE=VERTICAL SIZE=20px>";
+									if((i+1)%5==0) parent.innerHTML+="<br\/\>";
+								}
+							}
+						});
+					}
+				}
+			}
+			else{
+				console.log(y.text.content);
+				queries[cnt]=y.text.content;
+				cnt++;
+			}
+			}
+		});
+		});
+		
+		function buildPhotoURL (photo) {
+	console.log(photo);
+
+      var size="medium";
+
+      if (size == "original") {
+          var url = "http://farm" + photo.farm + ".static.flickr.com/" + photo.server + "/" + photo.id + "_" + photo.originalsecret + "_o" + "." + photo.originalformat;
+      } else {
+          var url = "http://farm" + photo.farm + ".static.flickr.com/" + photo.server + "/" + photo.id + "_" + photo.secret + "" + ".jpg";
+      }
+      return url;
+  }
+
+
+	}
+  
+	var form = document.getElementById('geosearch');  
+	form.addEventListener('submit',makeQuery,false);  
+</script>  
+
+</body>
+</html>
+
